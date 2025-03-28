@@ -2,9 +2,12 @@ package com.example.todo.adapter;
 
 import android.content.Context;
 import android.graphics.Paint;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -22,6 +25,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     private List<Task> taskList;
     private final Context context;
     private final TaskAdapterListener listener;
+    private int lastPosition = -1;
 
     // Interface for callback to activity
     public interface TaskAdapterListener {
@@ -59,29 +63,54 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             holder.descriptionTextView.setVisibility(View.GONE);
         }
         
-        // Set priority indicator color
+        // Set priority indicator color and label
         int priorityColor;
+        String priorityText;
         switch (task.getPriority()) {
             case 2: // High
                 priorityColor = R.color.priority_high;
+                priorityText = context.getString(R.string.priority_high);
                 break;
             case 1: // Medium
                 priorityColor = R.color.priority_medium;
+                priorityText = context.getString(R.string.priority_medium);
                 break;
             default: // Low
                 priorityColor = R.color.priority_low;
+                priorityText = context.getString(R.string.priority_low);
                 break;
         }
-        holder.priorityView.setBackgroundColor(ContextCompat.getColor(context, priorityColor));
+        
+        // Set priority color for both the side bar and the badge
+        int color = ContextCompat.getColor(context, priorityColor);
+        holder.priorityView.setBackgroundColor(color);
+        holder.priorityLabel.setText(priorityText);
+        holder.priorityLabel.setBackgroundTintList(ContextCompat.getColorStateList(context, priorityColor));
+        
+        // Set date added
+        CharSequence timeAgo = DateUtils.getRelativeTimeSpanString(
+                task.getTimestamp(),
+                System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS
+        );
+        holder.dateAddedText.setText(context.getString(R.string.added_time_ago, timeAgo));
         
         // Set completion status
         holder.checkBox.setChecked(task.isCompleted());
         
-        // Apply strikethrough for completed tasks
+        // Apply strikethrough and dim text for completed tasks
         if (task.isCompleted()) {
             holder.titleTextView.setPaintFlags(holder.titleTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            holder.titleTextView.setAlpha(0.6f);
+            holder.descriptionTextView.setAlpha(0.6f);
+            holder.priorityLabel.setAlpha(0.6f);
+            holder.dateAddedText.setAlpha(0.6f);
         } else {
             holder.titleTextView.setPaintFlags(holder.titleTextView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+            holder.titleTextView.setAlpha(1.0f);
+            holder.descriptionTextView.setAlpha(1.0f);
+            holder.priorityLabel.setAlpha(1.0f);
+            holder.dateAddedText.setAlpha(1.0f);
         }
         
         // Set click listeners
@@ -93,15 +122,51 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (listener != null && buttonView.isPressed()) { // Only trigger if user changed it
+                // Apply animation when task is completed
+                if (isChecked) {
+                    Animation animation = AnimationUtils.loadAnimation(context, R.anim.task_complete_animation);
+                    holder.itemView.startAnimation(animation);
+                }
                 listener.onTaskCheckChanged(task, isChecked);
             }
         });
         
         holder.deleteButton.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onDeleteClick(task, holder.getAdapterPosition());
+                Animation animation = AnimationUtils.loadAnimation(context, R.anim.task_delete_animation);
+                animation.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {}
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        listener.onDeleteClick(task, holder.getAdapterPosition());
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {}
+                });
+                holder.itemView.startAnimation(animation);
             }
         });
+        
+        // Apply animation for new items
+        setAnimation(holder.itemView, position);
+    }
+
+    private void setAnimation(View viewToAnimate, int position) {
+        // If the bound view wasn't previously displayed on screen, it's animated
+        if (position > lastPosition) {
+            Animation animation = AnimationUtils.loadAnimation(context, R.anim.item_animation_from_right);
+            viewToAnimate.startAnimation(animation);
+            lastPosition = position;
+        }
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull TaskViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+        holder.itemView.clearAnimation();
     }
 
     @Override
@@ -112,12 +177,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public void updateTasks(List<Task> newTaskList) {
         this.taskList = newTaskList;
         notifyDataSetChanged();
+        lastPosition = -1; // Reset for animations
     }
 
     static class TaskViewHolder extends RecyclerView.ViewHolder {
         View priorityView;
         TextView titleTextView;
         TextView descriptionTextView;
+        TextView priorityLabel;
+        TextView dateAddedText;
         CheckBox checkBox;
         ImageButton deleteButton;
 
@@ -126,6 +194,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             priorityView = itemView.findViewById(R.id.view_priority);
             titleTextView = itemView.findViewById(R.id.text_task_title);
             descriptionTextView = itemView.findViewById(R.id.text_task_description);
+            priorityLabel = itemView.findViewById(R.id.text_priority_label);
+            dateAddedText = itemView.findViewById(R.id.text_date_added);
             checkBox = itemView.findViewById(R.id.checkbox_task);
             deleteButton = itemView.findViewById(R.id.button_delete);
         }

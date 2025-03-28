@@ -15,4 +15,5 @@
     <string name="priority_high">High</string>
     <string name="error_empty_title">Task title cannot be empty</string>
     <string name="empty_task_list">No tasks yet. Add a task using the + button.</string>
+    <string name="added_time_ago">Added: %1$s</string>
 </resources>

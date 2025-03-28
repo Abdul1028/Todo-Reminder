@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -8,7 +9,8 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Task Title">
+        android:hint="@string/task_title_hint"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edit_task_title"
@@ -21,15 +23,16 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:hint="Task Description (Optional)">
+        android:layout_marginTop="16dp"
+        android:hint="@string/task_description_hint"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edit_task_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
-            android:minLines="2" />
+            android:minLines="3" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
@@ -52,21 +55,24 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Low" />
+            android:buttonTint="@color/priority_low"
+            android:text="@string/priority_low" />
 
         <RadioButton
             android:id="@+id/radio_priority_medium"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:buttonTint="@color/priority_medium"
             android:checked="true"
-            android:text="Medium" />
+            android:text="@string/priority_medium" />
 
         <RadioButton
             android:id="@+id/radio_priority_high"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="High" />
+            android:buttonTint="@color/priority_high"
+            android:text="@string/priority_high" />
     </RadioGroup>
 </LinearLayout> 

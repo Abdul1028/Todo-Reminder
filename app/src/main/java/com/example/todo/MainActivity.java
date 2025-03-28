@@ -3,6 +3,8 @@ package com.example.todo;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
@@ -12,6 +14,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,6 +22,7 @@ import com.example.todo.adapter.TaskAdapter;
 import com.example.todo.model.Task;
 import com.example.todo.viewmodel.TaskViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,10 +46,14 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
         progressBar = findViewById(R.id.progress_bar);
         FloatingActionButton fabAddTask = findViewById(R.id.fab_add_task);
 
-        // Set up RecyclerView
+        // Set up RecyclerView with animation
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TaskAdapter(this, new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
+        
+        // Apply layout animation
+        LayoutAnimationController animation = AnimationUtils.loadLayoutAnimation(this, R.anim.layout_animation);
+        recyclerView.setLayoutAnimation(animation);
 
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(TaskViewModel.class);
@@ -54,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
         viewModel.getTasks().observe(this, tasks -> {
             adapter.updateTasks(tasks);
             updateEmptyView(tasks);
+            // Run the layout animation again
+            recyclerView.scheduleLayoutAnimation();
         });
 
         // Observe loading state
@@ -64,12 +74,49 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
         // Observe errors
         viewModel.getError().observe(this, error -> {
             if (error != null && !error.isEmpty()) {
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+                Snackbar.make(recyclerView, error, Snackbar.LENGTH_LONG).show();
             }
         });
 
-        // Set up FAB click listener
-        fabAddTask.setOnClickListener(v -> showTaskDialog(null));
+        // Set up FAB click listener with animation
+        fabAddTask.setOnClickListener(v -> {
+            fabAddTask.animate()
+                    .rotationBy(360f)
+                    .setDuration(300)
+                    .withEndAction(() -> showTaskDialog(null))
+                    .start();
+        });
+
+        // Add swipe to delete functionality
+        setupSwipeToDelete();
+    }
+
+    private void setupSwipeToDelete() {
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                Task deletedTask = viewModel.getTasks().getValue().get(position);
+                
+                // Delete the task
+                viewModel.deleteTask(deletedTask.getId());
+                
+                // Show undo option
+                Snackbar.make(recyclerView, "Task deleted", Snackbar.LENGTH_LONG)
+                        .setAction("UNDO", view -> {
+                            // Restore the task
+                            viewModel.addTask(deletedTask);
+                        }).show();
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     private void updateEmptyView(List<Task> tasks) {
@@ -91,6 +138,10 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
     public void onTaskCheckChanged(Task task, boolean isChecked) {
         task.setCompleted(isChecked);
         viewModel.updateTask(task);
+        
+        // Show feedback
+        String message = isChecked ? "Task completed!" : "Task marked as incomplete";
+        Snackbar.make(recyclerView, message, Snackbar.LENGTH_SHORT).show();
     }
 
     @Override
@@ -172,9 +223,11 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
                 task.setDescription(description);
                 task.setPriority(priority);
                 viewModel.updateTask(task);
+                Snackbar.make(recyclerView, "Task updated successfully", Snackbar.LENGTH_SHORT).show();
             } else {
                 Task newTask = new Task(null, title, description, priority, false);
                 viewModel.addTask(newTask);
+                Snackbar.make(recyclerView, "New task added", Snackbar.LENGTH_SHORT).show();
             }
             
             dialog.dismiss();
