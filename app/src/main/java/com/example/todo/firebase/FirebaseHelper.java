@@ -1,5 +1,6 @@
 package com.example.todo.firebase;
 
+import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.example.todo.model.Task;
@@ -11,6 +12,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.example.todo.notification.NotificationHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +52,7 @@ public class FirebaseHelper {
     /**
      * Add a new task to Firebase
      */
-    public void addTask(Task task, final TaskCallback callback) {
+    public void addTask(Context context, Task task, final TaskCallback callback) {
         // Generate a unique ID if not provided
         if (task.getId() == null || task.getId().isEmpty()) {
             task.setId(tasksRef.push().getKey());
@@ -60,6 +62,11 @@ public class FirebaseHelper {
                 .addOnSuccessListener(aVoid -> {
                     if (callback != null) {
                         callback.onSuccess();
+                    }
+
+                    // Schedule notification if due date is set
+                    if (task.getDueDate() > 0) {
+                        NotificationHelper.scheduleNotification(context, task);
                     }
                 })
                 .addOnFailureListener(e -> {

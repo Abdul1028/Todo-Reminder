@@ -10,18 +10,22 @@ public class Task {
     private int priority; // 0: Low, 1: Medium, 2: High
     private boolean completed;
     private long timestamp;
+    private String category;
+    private long dueDate; // timestamp for due date
 
     // Empty constructor needed for Firebase
     public Task() {
     }
 
-    public Task(String id, String title, String description, int priority, boolean completed) {
+    public Task(String id, String title, String description, int priority, boolean completed, String category, long dueDate) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.priority = priority;
         this.completed = completed;
+        this.category = category != null ? category : "General";
         this.timestamp = System.currentTimeMillis();
+        this.dueDate = dueDate;
     }
 
     // Convert Task to Map for Firebase
@@ -32,7 +36,9 @@ public class Task {
         result.put("description", description);
         result.put("priority", priority);
         result.put("completed", completed);
+        result.put("category", category);
         result.put("timestamp", timestamp);
+        result.put("dueDate", dueDate);
         return result;
     }
 
@@ -83,5 +89,21 @@ public class Task {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getCategory() {
+        return category != null ? category : "General";
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public long getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(long dueDate) {
+        this.dueDate = dueDate;
     }
 } 

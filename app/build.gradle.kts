@@ -33,7 +33,9 @@ android {
 }
 
 dependencies {
-
+    implementation("nl.dionsegijn:konfetti:1.3.2")
+    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("com.google.android.material:material:1.6.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

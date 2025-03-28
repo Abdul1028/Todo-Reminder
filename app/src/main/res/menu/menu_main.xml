@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <item
+        android:id="@+id/action_sort"
+        android:title="Sort"
+        android:icon="@drawable/baseline_sort_24"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/sort_priority"
+                android:title="By Priority" />
+            <item
+                android:id="@+id/sort_due_date"
+                android:title="By Due Date" />
+            <item
+                android:id="@+id/sort_category"
+                android:title="By Category" />
+            <item
+                android:id="@+id/sort_creation_date"
+                android:title="By Creation Date" />
+        </menu>
+    </item>
+    
+    <item
+        android:id="@+id/action_filter"
+        android:title="Filter"
+        android:icon="@drawable/baseline_filter_alt_24"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/filter_all"
+                android:title="All Tasks"
+                android:checkable="true"
+                android:checked="true" />
+            <item
+                android:id="@+id/filter_active"
+                android:title="Active Tasks"
+                android:checkable="true" />
+            <item
+                android:id="@+id/filter_completed"
+                android:title="Completed Tasks"
+                android:checkable="true" />
+        </menu>
+    </item>
+    
+    <item
+        android:id="@+id/action_search"
+        android:title="Search"
+        android:icon="@drawable/baseline_search_24"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+</menu> 

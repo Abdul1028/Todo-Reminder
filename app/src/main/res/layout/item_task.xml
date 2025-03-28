@@ -70,6 +70,32 @@
                     android:textSize="12sp"
                     android:textStyle="italic"
                     tools:text="Added: 2 days ago" />
+
+                <TextView
+                    android:id="@+id/text_category"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/category_badge_background"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    tools:text="Work" />
+
+                <TextView
+                    android:id="@+id/text_due_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="31dp"
+                    android:layout_marginStart="8dp"
+                    android:drawableStart="@drawable/baseline_calendar_month_24"
+                    android:drawablePadding="4dp"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:text="Due: Tomorrow"
+                    tools:visibility="visible" />
             </LinearLayout>
         </LinearLayout>
 

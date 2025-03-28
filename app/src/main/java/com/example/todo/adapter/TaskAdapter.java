@@ -19,7 +19,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.todo.R;
 import com.example.todo.model.Task;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
     private List<Task> taskList;
@@ -113,6 +117,38 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             holder.dateAddedText.setAlpha(1.0f);
         }
         
+        // Set category
+        holder.categoryTextView.setText(task.getCategory());
+        
+        // Set due date if available
+        if (task.getDueDate() > 0) {
+            holder.dueDateTextView.setVisibility(View.VISIBLE);
+            
+            // Format the due date
+            String dueDateText = formatDueDate(task.getDueDate());
+            holder.dueDateTextView.setText(dueDateText);
+            
+            // Set color based on due date (red if overdue, orange if due today)
+            long now = System.currentTimeMillis();
+            if (task.getDueDate() < now) {
+                holder.dueDateTextView.setTextColor(ContextCompat.getColor(context, R.color.priority_high));
+            } else {
+                // Check if due today
+                Calendar todayCal = Calendar.getInstance();
+                todayCal.set(Calendar.HOUR_OF_DAY, 23);
+                todayCal.set(Calendar.MINUTE, 59);
+                todayCal.set(Calendar.SECOND, 59);
+                
+                if (task.getDueDate() <= todayCal.getTimeInMillis()) {
+                    holder.dueDateTextView.setTextColor(ContextCompat.getColor(context, R.color.priority_medium));
+                } else {
+                    holder.dueDateTextView.setTextColor(ContextCompat.getColor(context, android.R.color.tab_indicator_text));
+                }
+            }
+        } else {
+            holder.dueDateTextView.setVisibility(View.GONE);
+        }
+        
         // Set click listeners
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -180,6 +216,43 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         lastPosition = -1; // Reset for animations
     }
 
+    private String formatDueDate(long timestamp) {
+        // Get current time
+        long now = System.currentTimeMillis();
+        
+        // Check if overdue
+        if (timestamp < now) {
+            return "Overdue!";
+        }
+        
+        // Check if due today
+        Calendar todayCal = Calendar.getInstance();
+        todayCal.set(Calendar.HOUR_OF_DAY, 0);
+        todayCal.set(Calendar.MINUTE, 0);
+        todayCal.set(Calendar.SECOND, 0);
+        todayCal.set(Calendar.MILLISECOND, 0);
+        
+        Calendar tomorrowCal = (Calendar) todayCal.clone();
+        tomorrowCal.add(Calendar.DAY_OF_MONTH, 1);
+        
+        Calendar timestampCal = Calendar.getInstance();
+        timestampCal.setTimeInMillis(timestamp);
+        timestampCal.set(Calendar.HOUR_OF_DAY, 0);
+        timestampCal.set(Calendar.MINUTE, 0);
+        timestampCal.set(Calendar.SECOND, 0);
+        timestampCal.set(Calendar.MILLISECOND, 0);
+        
+        if (timestampCal.getTimeInMillis() == todayCal.getTimeInMillis()) {
+            return "Due: Today";
+        } else if (timestampCal.getTimeInMillis() == tomorrowCal.getTimeInMillis()) {
+            return "Due: Tomorrow";
+        } else {
+            // Format date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MMM d", Locale.getDefault());
+            return "Due: " + dateFormat.format(new Date(timestamp));
+        }
+    }
+
     static class TaskViewHolder extends RecyclerView.ViewHolder {
         View priorityView;
         TextView titleTextView;
@@ -188,6 +261,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         TextView dateAddedText;
         CheckBox checkBox;
         ImageButton deleteButton;
+        TextView categoryTextView;
+        TextView dueDateTextView;
 
         TaskViewHolder(View itemView) {
             super(itemView);
@@ -198,6 +273,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             dateAddedText = itemView.findViewById(R.id.text_date_added);
             checkBox = itemView.findViewById(R.id.checkbox_task);
             deleteButton = itemView.findViewById(R.id.button_delete);
+            categoryTextView = itemView.findViewById(R.id.text_category);
+            dueDateTextView = itemView.findViewById(R.id.text_due_date);
         }
     }
 } 

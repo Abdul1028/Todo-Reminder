@@ -1,8 +1,9 @@
 package com.example.todo.viewmodel;
 
+import android.app.Application;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.AndroidViewModel;
 
 import com.example.todo.firebase.FirebaseHelper;
 import com.example.todo.model.Task;
@@ -14,13 +15,18 @@ import java.util.List;
 /**
  * ViewModel for managing Task data and business logic
  */
-public class TaskViewModel extends ViewModel {
+public class TaskViewModel extends AndroidViewModel {
     private final FirebaseHelper firebaseHelper;
     private final MutableLiveData<List<Task>> tasksLiveData = new MutableLiveData<>();
     private final MutableLiveData<String> errorLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> loadingLiveData = new MutableLiveData<>();
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final Application application;
 
-    public TaskViewModel() {
+    public TaskViewModel(Application application) {
+        super(application);
+        this.application = application;
         firebaseHelper = FirebaseHelper.getInstance();
         loadTasks();
     }
@@ -36,6 +42,14 @@ public class TaskViewModel extends ViewModel {
 
     public LiveData<Boolean> getLoading() {
         return loadingLiveData;
+    }
+
+    public LiveData<String> getErrorMessage() {
+        return errorMessage;
+    }
+
+    public LiveData<Boolean> getIsLoading() {
+        return isLoading;
     }
 
     // Load tasks from Firebase
@@ -68,18 +82,18 @@ public class TaskViewModel extends ViewModel {
 
     // Add a new task
     public void addTask(Task task) {
-        loadingLiveData.setValue(true);
-        firebaseHelper.addTask(task, new FirebaseHelper.TaskCallback() {
+        isLoading.setValue(true);
+        
+        FirebaseHelper.getInstance().addTask(application, task, new FirebaseHelper.TaskCallback() {
             @Override
             public void onSuccess() {
-                loadingLiveData.setValue(false);
-                // Tasks will be automatically updated via the ValueEventListener
+                isLoading.setValue(false);
             }
 
             @Override
             public void onError(String error) {
-                errorLiveData.setValue(error);
-                loadingLiveData.setValue(false);
+                isLoading.setValue(false);
+                errorMessage.setValue(error);
             }
         });
     }
