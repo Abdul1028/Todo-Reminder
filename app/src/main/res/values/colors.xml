@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Priority colors -->
+    <color name="priority_low">#4CAF50</color>    <!-- Green -->
+    <color name="priority_medium">#FFC107</color> <!-- Amber -->
+    <color name="priority_high">#F44336</color>   <!-- Red -->
+    
+    <!-- App theme colors -->
+    <color name="primary">#2196F3</color>         <!-- Blue -->
+    <color name="primary_dark">#1976D2</color>    <!-- Dark Blue -->
+    <color name="accent">#FF4081</color>          <!-- Pink -->
+</resources>
